@@ -3,11 +3,14 @@ const getRepoInfo = () => {
     const hostname = window.location.hostname;
     
     // For GitHub Pages: username.github.io/repository
-    if (hostname.endsWith('.github.io')) {
-        const pathParts = window.location.pathname.split('/').filter(p => p);
-        const username = hostname.split('.')[0];
-        const repo = pathParts[0] || 'issueBlog';
-        return { owner: username, repo: repo };
+    if (hostname.endsWith('.github.io') && hostname.includes('.')) {
+        const parts = hostname.split('.');
+        if (parts.length >= 3) { // Ensure proper format: username.github.io
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+            const username = parts[0];
+            const repo = pathParts[0] || 'issueBlog';
+            return { owner: username, repo: repo };
+        }
     }
     
     // Default fallback
@@ -39,7 +42,15 @@ async function fetchIssues() {
         loadingEl.style.display = 'none';
 
         if (issues.length === 0) {
-            entriesEl.innerHTML = '<div class="entry"><p class="entry-content" style="text-align: center; font-style: italic;">No entries have been recorded yet. Begin your journey by creating an issue in this repository.</p></div>';
+            const emptyEntry = document.createElement('div');
+            emptyEntry.className = 'entry';
+            const emptyContent = document.createElement('p');
+            emptyContent.className = 'entry-content';
+            emptyContent.style.textAlign = 'center';
+            emptyContent.style.fontStyle = 'italic';
+            emptyContent.textContent = 'No entries have been recorded yet. Begin your journey by creating an issue in this repository.';
+            emptyEntry.appendChild(emptyContent);
+            entriesEl.appendChild(emptyEntry);
             return;
         }
 
