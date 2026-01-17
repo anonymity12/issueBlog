@@ -42,7 +42,8 @@ function getApiHeaders() {
     
     const token = getStoredToken();
     if (token) {
-        headers['Authorization'] = `token ${token}`;
+        // Using Bearer token format (recommended by GitHub)
+        headers['Authorization'] = `Bearer ${token}`;
     }
     
     return headers;
@@ -68,6 +69,9 @@ const getRepoInfo = () => {
 
 const repoInfo = getRepoInfo();
 const GITHUB_API = `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/issues`;
+
+// Supported GitHub token prefixes for validation
+const SUPPORTED_TOKEN_PREFIXES = ['ghp_', 'github_pat_', 'gho_', 'ghu_', 'ghs_', 'ghr_'];
 
 // Fetch issues from GitHub
 async function fetchIssues() {
@@ -309,11 +313,12 @@ function handleSaveToken() {
     
     // Basic validation - GitHub tokens have specific formats:
     // Classic tokens (ghp_): 40 chars total (4 prefix + 36 alphanumeric)
-    // Fine-grained tokens (github_pat_): variable length, typically 82+ chars
+    // Fine-grained tokens (github_pat_): variable length, typically 80+ chars
     // Other types (gho_, ghu_, ghs_, ghr_): similar to classic, 40 chars total
-    const tokenPattern = /^(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{60,}|gh[ouhsr]_[a-zA-Z0-9]{36})$/;
+    const tokenPattern = /^(ghp_[a-zA-Z0-9]{36}|github_pat_.{50,}|gh[ouhsr]_[a-zA-Z0-9]{36})$/;
     if (!tokenPattern.test(token)) {
-        statusEl.textContent = '⚠ Token format appears invalid. GitHub tokens typically start with ghp_, github_pat_, gho_, ghu_, ghs_, or ghr_';
+        const prefixList = SUPPORTED_TOKEN_PREFIXES.join(', ');
+        statusEl.textContent = `⚠ Token format appears invalid. GitHub tokens typically start with ${prefixList}`;
         statusEl.className = 'token-status error';
         statusEl.style.display = 'block';
         return;
