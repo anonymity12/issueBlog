@@ -137,7 +137,15 @@ function displayIssues(issues) {
         const authorInfo = document.createElement('div');
         authorInfo.className = 'entry-meta';
         authorInfo.style.marginTop = '0.5rem';
-        authorInfo.innerHTML = `Recorded by <strong>${issue.user.login}</strong> • Status: ${issue.state === 'open' ? 'Ongoing Voyage' : 'Completed Journey'}`;
+        
+        const recordedText = document.createTextNode('Recorded by ');
+        const authorStrong = document.createElement('strong');
+        authorStrong.textContent = issue.user.login;
+        const statusText = document.createTextNode(` • Status: ${issue.state === 'open' ? 'Ongoing Voyage' : 'Completed Journey'}`);
+        
+        authorInfo.appendChild(recordedText);
+        authorInfo.appendChild(authorStrong);
+        authorInfo.appendChild(statusText);
         entry.appendChild(authorInfo);
         
         entriesEl.appendChild(entry);
