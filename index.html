@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captain's Log - A Journey Through GitHub Issues</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="parchment-container">
+        <div class="parchment-roll">
+            <header class="diary-header">
+                <h1>Captain's Log</h1>
+                <p class="subtitle">A Chronicle of Discoveries from the GitHub Seas</p>
+            </header>
+
+            <div id="loading" class="loading">
+                <p>Unfurling the ancient scrolls...</p>
+            </div>
+
+            <div id="error" class="error" style="display: none;">
+                <p>Alas! The voyage has encountered troubled waters.</p>
+                <p id="error-message"></p>
+            </div>
+
+            <div id="blog-entries" class="blog-entries">
+                <!-- Issues will be loaded here -->
+            </div>
+
+            <footer class="diary-footer">
+                <p>~ End of Current Entries ~</p>
+                <p class="seal">⚓</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
