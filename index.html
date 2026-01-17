@@ -14,6 +14,35 @@
                 <p class="subtitle">A Chronicle of Discoveries from the GitHub Seas</p>
             </header>
 
+            <!-- GitHub API Token Configuration -->
+            <div id="api-key-container" class="api-key-container">
+                <div class="api-key-header">
+                    <h3>⚓ Navigation Credentials</h3>
+                    <p class="api-key-description">
+                        To chart the waters of GitHub's vast seas with greater provisions, 
+                        provide thy Personal Access Token. This shall increase thy rate of requests 
+                        and grant access to private repositories if granted permission.
+                    </p>
+                </div>
+                <div class="api-key-input-group">
+                    <input 
+                        type="password" 
+                        id="github-token" 
+                        placeholder="Enter your GitHub Personal Access Token (optional)"
+                        aria-label="GitHub Personal Access Token">
+                    <button id="save-token-btn" type="button">Save Token</button>
+                    <button id="clear-token-btn" type="button" style="display: none;">Clear Token</button>
+                </div>
+                <div id="token-status" class="token-status" style="display: none;"></div>
+                <div class="api-key-warning">
+                    <strong>⚠️ Security Notice:</strong> Thy token is stored only in this vessel's session storage 
+                    and shall never be transmitted to any third party. It remains secure within thy browser. 
+                    <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">
+                        Create a Personal Access Token
+                    </a> with 'repo' or 'public_repo' scope.
+                </div>
+            </div>
+
             <div id="loading" class="loading">
                 <p>Unfurling the ancient scrolls...</p>
             </div>

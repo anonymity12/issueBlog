@@ -2,6 +2,52 @@
 const DEFAULT_OWNER = 'anonymity12';
 const DEFAULT_REPO = 'issueBlog';
 
+// GitHub API Token Management
+const TOKEN_STORAGE_KEY = 'github_api_token';
+
+/**
+ * Retrieves the stored GitHub Personal Access Token from session storage
+ * @returns {string|null} The stored token or null if not found
+ */
+function getStoredToken() {
+    return sessionStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+/**
+ * Stores the GitHub Personal Access Token in session storage
+ * @param {string} token - The GitHub PAT to store
+ */
+function saveToken(token) {
+    if (token && token.trim()) {
+        sessionStorage.setItem(TOKEN_STORAGE_KEY, token.trim());
+    }
+}
+
+/**
+ * Removes the stored GitHub Personal Access Token from session storage
+ */
+function clearToken() {
+    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+}
+
+/**
+ * Creates HTTP headers for GitHub API requests
+ * Includes Authorization header if a token is available
+ * @returns {Object} Headers object for fetch requests
+ */
+function getApiHeaders() {
+    const headers = {
+        'Accept': 'application/vnd.github.v3+json'
+    };
+    
+    const token = getStoredToken();
+    if (token) {
+        headers['Authorization'] = `token ${token}`;
+    }
+    
+    return headers;
+}
+
 const getRepoInfo = () => {
     const hostname = window.location.hostname;
     
@@ -34,9 +80,28 @@ async function fetchIssues() {
         loadingEl.style.display = 'block';
         errorEl.style.display = 'none';
 
-        const response = await fetch(GITHUB_API + '?state=all&sort=created&direction=desc');
+        // Make authenticated request if token is available
+        const headers = getApiHeaders();
+        const response = await fetch(GITHUB_API + '?state=all&sort=created&direction=desc', {
+            headers: headers
+        });
         
         if (!response.ok) {
+            // Handle rate limiting
+            if (response.status === 403) {
+                const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
+                if (rateLimitRemaining === '0') {
+                    throw new Error('Rate limit exceeded. Please provide a GitHub Personal Access Token to increase your rate limit.');
+                }
+            }
+            
+            // Handle authentication errors
+            if (response.status === 401) {
+                clearToken();
+                updateTokenUI();
+                throw new Error('Invalid GitHub token. Please check your Personal Access Token and try again.');
+            }
+            
             throw new Error(`Failed to fetch issues: ${response.status} ${response.statusText}`);
         }
 
@@ -167,4 +232,119 @@ function displayIssues(issues) {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', fetchIssues);
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTokenUI();
+    fetchIssues();
+});
+
+/**
+ * Initializes the token input UI and event listeners
+ */
+function initializeTokenUI() {
+    const tokenInput = document.getElementById('github-token');
+    const saveButton = document.getElementById('save-token-btn');
+    const clearButton = document.getElementById('clear-token-btn');
+    const statusEl = document.getElementById('token-status');
+
+    // Set up event listeners
+    saveButton.addEventListener('click', handleSaveToken);
+    clearButton.addEventListener('click', handleClearToken);
+    
+    // Allow Enter key to save token
+    tokenInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleSaveToken();
+        }
+    });
+
+    // Update UI based on stored token
+    updateTokenUI();
+}
+
+/**
+ * Updates the UI to reflect the current token state
+ */
+function updateTokenUI() {
+    const tokenInput = document.getElementById('github-token');
+    const saveButton = document.getElementById('save-token-btn');
+    const clearButton = document.getElementById('clear-token-btn');
+    const statusEl = document.getElementById('token-status');
+    
+    const storedToken = getStoredToken();
+    
+    if (storedToken) {
+        // Token is stored
+        tokenInput.value = '••••••••••••••••••••';
+        tokenInput.disabled = true;
+        saveButton.style.display = 'none';
+        clearButton.style.display = 'inline-block';
+        
+        statusEl.textContent = '✓ Token saved and active for this session';
+        statusEl.className = 'token-status success';
+        statusEl.style.display = 'block';
+    } else {
+        // No token stored
+        tokenInput.value = '';
+        tokenInput.disabled = false;
+        saveButton.style.display = 'inline-block';
+        clearButton.style.display = 'none';
+        statusEl.style.display = 'none';
+    }
+}
+
+/**
+ * Handles the save token button click
+ */
+function handleSaveToken() {
+    const tokenInput = document.getElementById('github-token');
+    const statusEl = document.getElementById('token-status');
+    const token = tokenInput.value.trim();
+    
+    if (!token) {
+        statusEl.textContent = '⚠ Please enter a token';
+        statusEl.className = 'token-status error';
+        statusEl.style.display = 'block';
+        return;
+    }
+    
+    // Basic validation - GitHub tokens start with 'ghp_', 'gho_', 'ghu_', 'ghs_', or 'ghr_'
+    const tokenPattern = /^(ghp_|gho_|ghu_|ghs_|ghr_)[a-zA-Z0-9]{36,}$/;
+    if (!tokenPattern.test(token)) {
+        statusEl.textContent = '⚠ Token format appears invalid. GitHub tokens typically start with ghp_, gho_, ghu_, ghs_, or ghr_';
+        statusEl.className = 'token-status error';
+        statusEl.style.display = 'block';
+        return;
+    }
+    
+    // Save the token
+    saveToken(token);
+    updateTokenUI();
+    
+    // Reload issues with the new token
+    statusEl.textContent = '✓ Token saved! Reloading entries...';
+    statusEl.className = 'token-status info';
+    statusEl.style.display = 'block';
+    
+    setTimeout(() => {
+        fetchIssues();
+    }, 500);
+}
+
+/**
+ * Handles the clear token button click
+ */
+function handleClearToken() {
+    const statusEl = document.getElementById('token-status');
+    
+    clearToken();
+    updateTokenUI();
+    
+    statusEl.textContent = 'Token cleared. Reloading entries...';
+    statusEl.className = 'token-status info';
+    statusEl.style.display = 'block';
+    
+    setTimeout(() => {
+        fetchIssues();
+        statusEl.style.display = 'none';
+    }, 1500);
+}
