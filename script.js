@@ -277,8 +277,8 @@ function updateTokenUI() {
     const storedToken = getStoredToken();
     
     if (storedToken) {
-        // Token is stored
-        tokenInput.value = '••••••••••••••••••••';
+        // Token is stored - use generic placeholder to avoid revealing token length
+        tokenInput.value = '••••••••••••••••';
         tokenInput.disabled = true;
         saveButton.style.display = 'none';
         clearButton.style.display = 'inline-block';
