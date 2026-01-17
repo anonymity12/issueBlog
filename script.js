@@ -1,4 +1,7 @@
 // Configuration - automatically detects repository from GitHub Pages URL
+const DEFAULT_OWNER = 'anonymity12';
+const DEFAULT_REPO = 'issueBlog';
+
 const getRepoInfo = () => {
     const hostname = window.location.hostname;
     
@@ -8,13 +11,13 @@ const getRepoInfo = () => {
         if (parts.length >= 3) { // Ensure proper format: username.github.io
             const pathParts = window.location.pathname.split('/').filter(p => p);
             const username = parts[0];
-            const repo = pathParts[0] || 'issueBlog';
+            const repo = pathParts[0] || DEFAULT_REPO;
             return { owner: username, repo: repo };
         }
     }
     
     // Default fallback
-    return { owner: 'anonymity12', repo: 'issueBlog' };
+    return { owner: DEFAULT_OWNER, repo: DEFAULT_REPO };
 };
 
 const repoInfo = getRepoInfo();
